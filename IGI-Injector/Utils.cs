@@ -12,11 +12,13 @@ namespace IGI_Injector
 {
     class Utils
     {
-        private static string injectorName = "igi-injector-cmd", gameName = "IGI", projAppName, cfgFile, gameAbsPath, cfgGamePath;
+        private static string gameName = "IGI", projAppName, cfgFile, gameAbsPath, cfgGamePath, keyBase = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
         internal static List<string> inputDllNames;
-        internal const string CAPTION_CONFIG_ERR = "Config - Error", CAPTION_FATAL_SYS_ERR = "Fatal sytem - Error", CAPTION_APP_ERR = "Application - Error", CAPTION_COMPILER_ERR = "Compiler - Error";
-        internal static bool multi_dll = false;
-        internal static string keyBase = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
+        internal const string CAPTION_CONFIG_ERR = "Config - Error", CAPTION_FATAL_SYS_ERR = "Fatal sytem - Error", CAPTION_APP_ERR = "Application - Error", CAPTION_COMPILER_ERR = "Compiler - Error", GAME_PATH = "GAME_PATH", GAME_VARS = "GAME_VARS";
+        internal static bool multiDll = false;
+        internal static int delayDll = 10, gameLevel = 1;
+        internal static string injectorFile = @"bin\igi-injector-cmd.exe";
+        private static IniFile configIni;
 
         internal static void ShowStatusInfo(string text)
         {
@@ -48,10 +50,10 @@ namespace IGI_Injector
                 {
                     string inputDllName = "";
 
-                    foreach(var dllName in inputDllNames)
+                    foreach (var dllName in inputDllNames)
                         inputDllName += dllName + " ";
-                    
-                    string injectCmd = injectorName + ((dllInject) ? " -i " : " -e ") + inputDllName;
+
+                    string injectCmd = injectorFile + ((dllInject) ? " -i " : " -e ") + inputDllName;
                     ShellExec(injectCmd);
                     status = true;
                 }
@@ -110,11 +112,10 @@ namespace IGI_Injector
             Environment.Exit(1);
         }
 
-        private static void ParseConfigProperty(string configPath, ref bool propertyName, string keyword)
+        public static void ShowSystemFatalError(string errMsg)
         {
-            if (configPath.Trim().Contains("true")) propertyName = true;
-            else if (configPath.Trim().Contains("false")) propertyName = false;
-            else ShowConfigError(keyword);
+            ShowError(errMsg, CAPTION_FATAL_SYS_ERR);
+            Environment.Exit(1);
         }
 
         internal static string LocateExecutable(String filename)
@@ -145,79 +146,51 @@ namespace IGI_Injector
             {
                 cfgGamePath = cfgGamePath.Substring(0, cfgGamePath.LastIndexOf("\\"));
 
-                if (!File.Exists(cfgGamePath + Path.DirectorySeparatorChar + gameName + ".exe"))
+                if (!File.Exists(cfgGamePath + "\\" + gameName + ".exe"))
                 {
                     ShowError("Invalid path selected! Game 'IGI' not found at path '" + cfgGamePath + "'", CAPTION_FATAL_SYS_ERR);
                     gameFound = false;
                 }
             }
 
-            string configData = "[GAME_PATH]\n" +
-                "game_path = " + cfgGamePath + "\n\n" +
-                "[GAME_VARS]\n" +
-                "multi_dll = false\n";
+            configIni.Write("game_path", cfgGamePath is null ? " " : cfgGamePath, "GAME_PATH");
+            configIni.Write("multi_dll", "false", "GAME_VARS");
+            configIni.Write("delay_dll", "10", "GAME_VARS");
+            configIni.Write("game_level", "1", "GAME_VARS");
 
-            File.WriteAllText(configFile, configData);
-            if (!gameFound)
-                Environment.Exit(1);
+            //File.WriteAllText(configFile, configData);
+
+            if (!gameFound) Environment.Exit(1);
         }
 
         internal static void ParseConfig()
         {
             projAppName = AppDomain.CurrentDomain.FriendlyName.Replace(".exe", String.Empty);
             cfgFile = projAppName + ".ini";
-
-            var keywords = new List<string>() { "game_path", "multi_dll" };
-            if (File.Exists(cfgFile))
+            configIni = new IniFile(cfgFile);
+            try
             {
-                var cfgData = File.ReadAllText(cfgFile);
-                var split_data = cfgData.Split('\n');
-
-                if (!keywords.All(o => cfgData.Contains(o)))
+                if (File.Exists(cfgFile))
                 {
-                    ShowError("Config file '" + cfgFile + "' doesn't contain proper keywords", CAPTION_CONFIG_ERR);
-                    Environment.Exit(1);
+                    gameAbsPath = configIni.Read("game_path", GAME_PATH);
+                    cfgGamePath = gameAbsPath.Trim() + gameName + ".exe";
+
+                    multiDll = bool.Parse(configIni.Read("multi_dll", GAME_VARS));
+                    delayDll = Int32.Parse(configIni.Read("delay_dll", GAME_VARS));
+                    gameLevel = Int32.Parse(configIni.Read("game_level", GAME_VARS));
                 }
-
-                foreach (var data in split_data)
+                else
                 {
-                    if (keywords.Any(o => data.Contains(o)))
-                    {
-                        for (int i = 0; i < keywords.Count; i++)
-                        {
-                            if (data.Contains(keywords[i]))
-                            {
-                                var configPath = data.Substring(keywords[i].Length + 0x3);
-
-                                if (i == 0)
-                                {
-                                    if (String.IsNullOrEmpty(configPath) || String.IsNullOrWhiteSpace(configPath))
-                                        ShowConfigError(keywords[i]);
-                                    else
-                                    {
-                                        string gPath = configPath.Trim();
-                                        if (gPath.Contains("\""))
-                                            gPath = configPath = gPath.Replace("\"", String.Empty);
-                                        if (!File.Exists(gPath + Path.DirectorySeparatorChar + gameName + ".exe"))
-                                        {
-                                            ShowError("Invalid path selected! Game 'IGI' not found at path '" + gPath + "'", CAPTION_FATAL_SYS_ERR);
-                                            Environment.Exit(1);
-                                        }
-                                        gameAbsPath = configPath.Trim();
-                                        cfgGamePath = configPath.Trim() + gameName + ".exe";
-                                    }
-                                }
-                                else if (i == 1)
-                                    ParseConfigProperty(configPath, ref multi_dll, keywords[i]);
-                            }
-                        }
-                    }
+                    ShowWarning("Config file not found in current directory", CAPTION_CONFIG_ERR);
+                    CreateConfig(cfgFile);
                 }
             }
-            else
+            catch (FormatException ex)
             {
-                ShowWarning("Config file not found in current directory", CAPTION_CONFIG_ERR);
-                CreateConfig(cfgFile);
+                if (ex.StackTrace.Contains("bool"))
+                    ShowConfigError("multi_dll");
+                else if (ex.StackTrace.Contains("Int32"))
+                    ShowConfigError("delay_dll or game_level");
             }
         }
 
