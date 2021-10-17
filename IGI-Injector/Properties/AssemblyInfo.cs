@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("IGI-Injector")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("IGI-Injector is DLL Injector for Project I.G.I with GUI.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("IGI-ResearchDevs")]
 [assembly: AssemblyProduct("IGI-Injector")]
-[assembly: AssemblyCopyright("Copyright ©  2021")]
+[assembly: AssemblyCopyright("Copyright Haseeb Mir©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

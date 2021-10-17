@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -14,6 +15,7 @@ namespace IGI_Injector
             mainRef = this;
             Utils.ParseConfig();
             Utils.CreateGameShortcut();
+            Utils.inputDllNames = new List<string>();
         }
 
         private void browseFile_Click(object sender, EventArgs e)
@@ -24,14 +26,21 @@ namespace IGI_Injector
             fileDlg.Title = "Select DLL";
             fileDlg.CheckFileExists = true;
             fileDlg.DefaultExt = ".dll";
+            fileDlg.Multiselect = Utils.multi_dll;
+
             DialogResult resultDlg = fileDlg.ShowDialog(); 
             if (resultDlg == DialogResult.OK)
             {
-                string dllFile = fileDlg.FileName;
+                //string dllFile;
+                Utils.inputDllNames.Clear();
                 try
                 {
-                    Utils.inputDllName = dllFile;
-                    injectBtn.Enabled = ejectBtn.Enabled = true;
+                    foreach (var dllFile in fileDlg.FileNames)
+                    {
+                        Utils.inputDllNames.Add(dllFile);
+                        browseFile.Text = Path.GetFileName(dllFile);
+                    }
+                    statusLbl.Text = "";
                 }
                 catch (IOException ex)
                 {
@@ -42,6 +51,17 @@ namespace IGI_Injector
 
         private void injectBtn_Click(object sender, EventArgs e)
         {
+            if (autoInjectCb.Checked)
+            {
+                int gameLevel = Convert.ToInt32(levelStartTxt.Text.ToString());
+                if (Utils.IsGameRunning()) System.Threading.Thread.Sleep(3000);
+                else
+                {
+                    Utils.GameRunner(windowCb.Checked, gameLevel);
+                    System.Threading.Thread.Sleep(10000);
+                }
+            }
+
             bool status = Utils.DllRunner(true);
             if(status) Utils.ShowStatusInfo("DLL was injected successfully");
         }
@@ -63,7 +83,20 @@ namespace IGI_Injector
 
         private void startGameBtn_Click(object sender, EventArgs e)
         {
-            Utils.GameRunner(true);
+            int gameLevel = Convert.ToInt32(levelStartTxt.Text.ToString());
+            Utils.GameRunner(windowCb.Checked, gameLevel);
+        }
+
+        private void windowCb_CheckedChanged(object sender, EventArgs e)
+        {
+            if (windowCb.Checked) fullCb.Checked = false;
+            else if (!windowCb.Checked && !fullCb.Checked) windowCb.Checked = true;
+        }
+
+        private void fullCb_CheckedChanged(object sender, EventArgs e)
+        {
+            if (fullCb.Checked) windowCb.Checked = false;
+            else if (!fullCb.Checked && !windowCb.Checked) fullCb.Checked = true;
         }
     }
 }

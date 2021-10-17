@@ -13,9 +13,9 @@ namespace IGI_Injector
     class Utils
     {
         private static string injectorName = "igi-injector-cmd", gameName = "IGI", projAppName, cfgFile, gameAbsPath, cfgGamePath;
-        internal static string inputDllName = "";
+        internal static List<string> inputDllNames;
         internal const string CAPTION_CONFIG_ERR = "Config - Error", CAPTION_FATAL_SYS_ERR = "Fatal sytem - Error", CAPTION_APP_ERR = "Application - Error", CAPTION_COMPILER_ERR = "Compiler - Error";
-        internal static bool appLogs = false;
+        internal static bool multi_dll = false;
         internal static string keyBase = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
 
         internal static void ShowStatusInfo(string text)
@@ -30,7 +30,7 @@ namespace IGI_Injector
             MainUI.mainRef.statusLbl.Text = "ERROR: " + text;
         }
 
-        internal static bool GameRunning()
+        internal static bool IsGameRunning()
         {
             bool isRunning = false;
             Process[] pname = Process.GetProcessesByName(gameName);
@@ -41,11 +41,16 @@ namespace IGI_Injector
         internal static bool DllRunner(bool dllInject)
         {
             bool status = false;
-            if (!String.IsNullOrEmpty(inputDllName))
+            if (inputDllNames.Count > 0)
             {
-                bool gameRunning = GameRunning();
+                bool gameRunning = IsGameRunning();
                 if (gameRunning)
                 {
+                    string inputDllName = "";
+
+                    foreach(var dllName in inputDllNames)
+                        inputDllName += dllName + " ";
+                    
                     string injectCmd = injectorName + ((dllInject) ? " -i " : " -e ") + inputDllName;
                     ShellExec(injectCmd);
                     status = true;
@@ -150,7 +155,7 @@ namespace IGI_Injector
             string configData = "[GAME_PATH]\n" +
                 "game_path = " + cfgGamePath + "\n\n" +
                 "[GAME_VARS]\n" +
-                "app_logs = false\n";
+                "multi_dll = false\n";
 
             File.WriteAllText(configFile, configData);
             if (!gameFound)
@@ -162,7 +167,7 @@ namespace IGI_Injector
             projAppName = AppDomain.CurrentDomain.FriendlyName.Replace(".exe", String.Empty);
             cfgFile = projAppName + ".ini";
 
-            var keywords = new List<string>() { "game_path", "app_logs" };
+            var keywords = new List<string>() { "game_path", "multi_dll" };
             if (File.Exists(cfgFile))
             {
                 var cfgData = File.ReadAllText(cfgFile);
@@ -203,7 +208,7 @@ namespace IGI_Injector
                                     }
                                 }
                                 else if (i == 1)
-                                    ParseConfigProperty(configPath, ref appLogs, keywords[i]);
+                                    ParseConfigProperty(configPath, ref multi_dll, keywords[i]);
                             }
                         }
                     }
@@ -245,12 +250,15 @@ namespace IGI_Injector
             }
         }
 
-        internal static void GameRunner(bool windowed = true)
+        internal static void GameRunner(bool windowed = true, int gameLevel = 1)
         {
             string gameRunCmd;
-            if (windowed) gameRunCmd = "start " + gameName + "_window.lnk";
-            else gameRunCmd = "start " + gameName + "_full.lnk";
-            ShellExec(gameRunCmd);
+            bool gameRunning = IsGameRunning();
+            if (windowed) gameRunCmd = "start " + gameName + "_window.lnk" + " level" + gameLevel;
+            else gameRunCmd = "start " + gameName + "_full.lnk" + " level" + gameLevel;
+
+            if (!gameRunning)
+                ShellExec(gameRunCmd);
         }
 
     }
