@@ -11,21 +11,49 @@ namespace IGI_Injector
 
         public IGIInjectorUI()
         {
-            InitializeComponent();
-            if (!File.Exists(Utils.injectorFile))
-                Utils.ShowSystemFatalError("Injector tool '" + Utils.injectorFile + "' not found.\nError (0x00000002) ERROR_FILE_NOT_FOUND");
+            try
+            {
+                InitializeComponent();
+                var uxLib = new UXLib();
+                uxLib.CustomFormMover(formMoverPanel, this);
 
-            this.MinimizeBox = this.MaximizeBox = false;
-            mainRef = this;
-            Utils.inputDllPaths = new List<string>();
-            Utils.ParseConfig();
-            Utils.CreateGameShortcut();
+                if (!File.Exists(Utils.injectorFile))
+                    Utils.ShowSystemFatalError("Injector tool '" + Utils.injectorFile + "' not found.\nError (0x00000002) ERROR_FILE_NOT_FOUND");
 
-            //Set app properties from Config file
-            levelStartTxt.Value = Utils.cfgGameLevel;
-            if (Utils.cfgGameMode == "windowed") windowCb.Checked = true;
-            else if (Utils.cfgGameMode == "full") fullCb.Checked = true;
-            autoInjectCb.Checked = (Utils.cfgAutoInject);
+                this.MinimizeBox = this.MaximizeBox = false;
+                mainRef = this;
+
+                Utils.inputDllPaths = new List<string>();
+
+                //Parse config on AppStart.
+                Utils.ParseConfig();
+
+                //Set app properties from Config file.
+                if (File.Exists(Utils.gameAbsPath + "\\" + Utils.cfgGameName + ".exe"))
+                {
+                    setGamePathBtn.Enabled = false;
+                    setGamePathBtn.Text = "Game Path: " + Utils.gameAbsPath;
+                }
+
+                if (Utils.cfgGameMode == "windowed") windowCb.Checked = true;
+                else if (Utils.cfgGameMode == "full") fullCb.Checked = true;
+
+                levelStartTxt.Value = Utils.cfgGameLevel;
+                autoInjectCb.Checked = Utils.cfgAutoInject;
+                multiDLLCb.Checked = Utils.cfgMultiDll;
+                delayTxt.Value = Utils.cfgDelayDll;
+                gameTypeDD.SelectedIndex = (Utils.cfgGameName.Contains("igi2") ? 1 : 0);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Utils.ShowWarning("Game Level should be between [" + levelStartTxt.Minimum + "-" + levelStartTxt.Maximum + "]");
+                levelStartTxt.Value = 1;
+            }
+
+            catch (Exception ex)
+            {
+                Utils.ShowSystemFatalError("Exception: " + ex.Message);
+            }
         }
 
         private void browseFile_Click(object sender, EventArgs e)
@@ -58,13 +86,32 @@ namespace IGI_Injector
             }
         }
 
+        private void setGamePathBtn_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog folderBrowser = new OpenFileDialog();
+            folderBrowser.ValidateNames = false;
+            folderBrowser.CheckFileExists = false;
+            folderBrowser.CheckPathExists = true;
+            folderBrowser.FileName = "Folder Selection.";
+
+            if (folderBrowser.ShowDialog() == DialogResult.OK)
+            {
+                Utils.gameAbsPath = Path.GetDirectoryName(folderBrowser.FileName) + Path.DirectorySeparatorChar;
+                Utils.cfgGamePath = (!String.IsNullOrEmpty(Utils.gameAbsPath)) ? (Utils.gameAbsPath.Trim() + Utils.cfgGameName + ".exe") : null;
+                Utils.CreateGameShortcut();
+                Utils.ShowStatusInfo("Game path set success");
+                setGamePathBtn.Enabled = false;
+                setGamePathBtn.Text = "Game Path: " + Utils.gameAbsPath;
+            }
+            else Utils.ShowStatusError("Game path set error");
+        }
+
         private void injectBtn_Click(object sender, EventArgs e)
         {
             if (autoInjectCb.Checked)
             {
                 Utils.cfgGameLevel = Int32.Parse(levelStartTxt.Text.ToString());
-                if (Utils.IsGameRunning()) System.Threading.Thread.Sleep(3000);
-                else
+                if (!Utils.IsGameRunning())
                 {
                     Utils.GameRunner(windowCb.Checked, Utils.cfgGameLevel);
                     System.Threading.Thread.Sleep(Utils.cfgDelayDll * 1000);
@@ -104,7 +151,7 @@ namespace IGI_Injector
 
         private void fullCb_CheckedChanged(object sender, EventArgs e)
         {
-            if (fullCb.Checked){ windowCb.Checked = false; Utils.cfgGameMode = "full";}
+            if (fullCb.Checked) { windowCb.Checked = false; Utils.cfgGameMode = "full"; }
             else if (!fullCb.Checked && !windowCb.Checked) fullCb.Checked = true;
         }
 
@@ -116,6 +163,54 @@ namespace IGI_Injector
         private void autoInjectCb_CheckedChanged(object sender, EventArgs e)
         {
             Utils.cfgAutoInject = (autoInjectCb.Checked);
+        }
+
+        private void minimizeBtn_Click(object sender, EventArgs e)
+        {
+            this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void closeBtn_Click(object sender, EventArgs e)
+        {
+            Environment.Exit(0);
+        }
+
+        private void gameTypeDD_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var gameName = ((ComboBox)sender).Text;
+            var gameIndex = ((ComboBox)sender).SelectedIndex;
+            if (!String.IsNullOrEmpty(gameName))
+            {
+                Utils.cfgGameName = gameName.Replace("Project ", String.Empty).Replace(" ", String.Empty).ToLower();
+                if (Utils.cfgGameName.Contains("igi1")) Utils.cfgGameName = Utils.cfgGameName.Replace("igi1", "igi");
+            }
+
+            if (gameIndex == 0)
+            {
+                levelStartTxt.Minimum = 1;
+                levelStartTxt.Maximum = Utils.IGI1_MAX_LEVEL;
+            }
+
+            else if (gameIndex == 1)
+            {
+                levelStartTxt.Minimum = 1;
+                levelStartTxt.Maximum = Utils.IGI2_MAX_LEVEL;
+            }
+        }
+
+        private void delayTxt_ValueChanged(object sender, EventArgs e)
+        {
+            Utils.cfgDelayDll = Int32.Parse(((NumericUpDown)(sender)).Value.ToString());
+        }
+
+        private void multiDLLCb_CheckedChanged(object sender, EventArgs e)
+        {
+            Utils.cfgMultiDll = (multiDLLCb.Checked);
+        }
+
+        private void gameTypeDD_MouseClick(object sender, MouseEventArgs e)
+        {
+            setGamePathBtn.Enabled = true;
         }
     }
 }

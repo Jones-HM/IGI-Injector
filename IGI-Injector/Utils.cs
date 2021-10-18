@@ -12,18 +12,19 @@ namespace IGI_Injector
 {
     class Utils
     {
-        private static string projAppName, cfgDllPath, gameAbsPath, cfgGamePath, keyBase = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
+        private static string projAppName, cfgDllPath, keyBase = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
         internal static List<string> inputDllPaths;
-        internal const string GAME = "IGI", CAPTION_CONFIG_ERR = "Config - Error", CAPTION_FATAL_SYS_ERR = "Fatal sytem - Error", CAPTION_APP_ERR = "Application - Error", CAPTION_COMPILER_ERR = "Compiler - Error", PATH_SEC = "PATH", GAME_SEC = "GAME", DLL_SEC = "DLL";
+        internal const string CAPTION_CONFIG_ERR = "Config - Error", CAPTION_FATAL_SYS_ERR = "Fatal sytem - Error", CAPTION_APP_ERR = "Application - Error", CAPTION_COMPILER_ERR = "Compiler - Error", PATH_SEC = "PATH", GAME_SEC = "GAME", DLL_SEC = "DLL";
         internal static bool cfgMultiDll = false, cfgAutoInject = false;
-        internal static int cfgDelayDll = 10, cfgGameLevel = 1;
-        internal static string cfgFile, cfgGameMode = "windowed", injectorFile = @"bin\igi-injector-cmd.exe";
+        internal static int cfgDelayDll = 10, cfgGameLevel = 1,IGI1_MAX_LEVEL = 14, IGI2_MAX_LEVEL = 19;
+        internal static string gameAbsPath,cfgGamePath, cfgGameName = "igi", cfgFile, cfgGameMode = "windowed", injectorFile = @"bin\igi-injector-cmd.exe";
         private static IniParser iniParser;
+        private static int[] missionListItems = { 0,11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36 };
 
         internal static bool DllRunner(bool dllInject)
         {
-            bool status = false;
-            if (inputDllPaths.Count > 0)
+            bool status;
+            if (inputDllPaths.Count > 0 && inputDllPaths[0].Length > 3)
             {
                 bool gameRunning = IsGameRunning();
                 if (gameRunning)
@@ -33,9 +34,15 @@ namespace IGI_Injector
                     foreach (var dllName in inputDllPaths)
                         inputDllPath += dllName + " ";
 
-                    string injectCmd = injectorFile + ((dllInject) ? " -i " : " -e ") + inputDllPath;
-                    ShellExec(injectCmd);
-                    status = true;
+                    string injectCmd = injectorFile + " -n " + cfgGameName + ".exe" + ((dllInject) ? " -i " : " -e ") + inputDllPath;
+
+                    string shellOut = ShellExec(injectCmd);
+                    if (shellOut.Contains("Could not find module") || shellOut.Contains("Error"))
+                    {
+                        ShowStatusError("DLL " + ((dllInject) ? "injection" : "ejection") + " was unsuccessful");
+                        status = false;
+                    }
+                    else status = true;
                 }
                 else
                 {
@@ -54,22 +61,19 @@ namespace IGI_Injector
         //Create config and save all data to file.
         internal static void CreateConfig(string configFile)
         {
-            cfgGamePath = (cfgGamePath is null) ? LocateExecutable(GAME + ".exe") : cfgGamePath;
-            bool gameFound = true;
+            cfgGamePath = (cfgGamePath is null) ? LocateExecutable(cfgGameName + ".exe") : cfgGamePath;
 
             if (String.IsNullOrEmpty(cfgGamePath))
             {
                 ShowWarning("Game path could not be detected automatically! Please select game path in config file", CAPTION_CONFIG_ERR);
-                gameFound = false;
             }
             else
             {
                 cfgGamePath = cfgGamePath.Substring(0, cfgGamePath.LastIndexOf("\\"));
 
-                if (!File.Exists(cfgGamePath + "\\" + GAME + ".exe"))
+                if (!File.Exists(cfgGamePath + "\\" + cfgGameName + ".exe"))
                 {
                     ShowError("Invalid path selected! Game 'IGI' not found at path '" + cfgGamePath + "'", CAPTION_FATAL_SYS_ERR);
-                    gameFound = false;
                 }
             }
 
@@ -82,19 +86,18 @@ namespace IGI_Injector
             {
                 foreach (var dllName in inputDllPaths)
                     inputDllPath += dllName + ",";
-                inputDllPath.Replace(",", String.Empty);
+                inputDllPath = inputDllPath.TrimEnd(',');
             }
 
             iniParser.Write("dll_path", inputDllPath is null ? "\n" : inputDllPath, PATH_SEC);
 
-            //Write vars to config.
+            //Write Game/App properties to config.
             iniParser.Write("multi_dll", cfgMultiDll.ToString(), DLL_SEC);
-            iniParser.Write("delay_dll", cfgDelayDll.ToString(), DLL_SEC);
-            iniParser.Write("auto_inject_dll", cfgAutoInject.ToString(), DLL_SEC);
-            iniParser.Write("game_level", cfgGameLevel.ToString(), GAME_SEC);
-            iniParser.Write("game_mode", cfgGameMode, GAME_SEC);
-
-            if (!gameFound) Environment.Exit(1);
+            iniParser.Write("delay", cfgDelayDll.ToString(), DLL_SEC);
+            iniParser.Write("auto_inject", cfgAutoInject.ToString(), DLL_SEC);
+            iniParser.Write("game", cfgGameName, GAME_SEC);
+            iniParser.Write("level", cfgGameLevel.ToString(), GAME_SEC);
+            iniParser.Write("mode", cfgGameMode, GAME_SEC);
         }
 
         //Read config and load all data from file.
@@ -107,16 +110,18 @@ namespace IGI_Injector
             {
                 if (File.Exists(cfgFile))
                 {
-                    //Read paths for config.
+                    //Read properties from PATH section.
                     gameAbsPath = iniParser.Read("game_path", PATH_SEC);
                     cfgDllPath = iniParser.Read("dll_path", PATH_SEC);
-                    cfgGamePath = (!String.IsNullOrEmpty(gameAbsPath)) ? (gameAbsPath.Trim() + GAME + ".exe") : null;
+
+                    if (!cfgDllPath.Contains(".dll") && cfgDllPath.Length > 3) ShowSystemFatalError("Dll path is invalid directory or file,\nError (0x0000000F) ERROR_INVALID_DRIVE");
 
                     if (cfgDllPath.Contains(","))
                     {
                         var dllPathSplit = cfgDllPath.Split(',');
                         foreach (var dllPath in dllPathSplit)
-                            inputDllPaths.Add(dllPath.Trim());
+                            if (dllPath.Contains(".dll"))
+                                inputDllPaths.Add(dllPath.Trim());
                     }
                     else inputDllPaths.Add(cfgDllPath);
 
@@ -124,12 +129,17 @@ namespace IGI_Injector
                     if (!String.IsNullOrEmpty(inputDllPaths[0]))
                         IGIInjectorUI.mainRef.browseFile.Text = Path.GetFileName(inputDllPaths[0]);
 
-                    //Read properties from config.
+                    //Read properties from DLL section.
                     cfgMultiDll = bool.Parse(iniParser.Read("multi_dll", DLL_SEC));
-                    cfgAutoInject = bool.Parse(iniParser.Read("auto_inject_dll", DLL_SEC));
-                    cfgDelayDll = Int32.Parse(iniParser.Read("delay_dll", DLL_SEC));
-                    cfgGameLevel = Int32.Parse(iniParser.Read("game_level", GAME_SEC));
-                    cfgGameMode = iniParser.Read("game_mode", GAME_SEC);
+                    cfgAutoInject = bool.Parse(iniParser.Read("auto_inject", DLL_SEC));
+                    cfgDelayDll = Int32.Parse(iniParser.Read("delay", DLL_SEC));
+
+                    //Read properties from Game section.
+                    cfgGameName = iniParser.Read("game", GAME_SEC);
+                    cfgGameLevel = Int32.Parse(iniParser.Read("level", GAME_SEC));
+                    cfgGameMode = iniParser.Read("mode", GAME_SEC);
+
+                    cfgGamePath = (!String.IsNullOrEmpty(gameAbsPath)) ? (gameAbsPath.Trim() + cfgGameName + ".exe") : null;
                 }
                 else
                 {
@@ -151,7 +161,7 @@ namespace IGI_Injector
         {
             if (!File.Exists(cfgGamePath))
             {
-                ShowSystemFatalError("Invalid path selected!\nGame 'IGI' not found at path '" + cfgGamePath + "'");
+                ShowSystemFatalError("Invalid game path selected!\nGame 'IGI' not found at path '" + cfgGamePath + "'");
             }
 
             var shell = new WshShell();
@@ -170,12 +180,14 @@ namespace IGI_Injector
 
         internal static void CreateGameShortcut()
         {
-            if (!File.Exists(GAME + "_full.lnk") || !File.Exists(GAME + "_full.lnk"))
+            if (String.IsNullOrEmpty(gameAbsPath)) return;
+
+            if (!File.Exists(cfgGameName + "_full.lnk") || !File.Exists(cfgGameName + "_full.lnk"))
             {
                 if (gameAbsPath.Contains("\""))
                     gameAbsPath = gameAbsPath.Replace("\"", String.Empty);
-                CreateGameShortcut(GAME + "_full", gameAbsPath);
-                CreateGameShortcut(GAME + "_window", gameAbsPath, "window");
+                CreateGameShortcut(cfgGameName + "_full", gameAbsPath);
+                CreateGameShortcut(cfgGameName + "_window", gameAbsPath, "window");
             }
         }
 
@@ -183,8 +195,11 @@ namespace IGI_Injector
         {
             string gameRunCmd;
             bool gameRunning = IsGameRunning();
-            if (windowed) gameRunCmd = "start " + GAME + "_window.lnk" + " level" + gameLevel;
-            else gameRunCmd = "start " + GAME + "_full.lnk" + " level" + gameLevel;
+
+            if (cfgGameName == "igi2") gameLevel = missionListItems[gameLevel]; //Get levels from missions Area.
+
+            if (windowed) gameRunCmd = "start " + cfgGameName + "_window.lnk" + " level" + gameLevel;
+            else gameRunCmd = "start " + cfgGameName + "_full.lnk" + " level" + gameLevel;
 
             if (!gameRunning)
                 ShellExec(gameRunCmd);
@@ -205,7 +220,7 @@ namespace IGI_Injector
 
         internal static bool IsGameRunning()
         {
-            Process[] pname = Process.GetProcessesByName(GAME);
+            Process[] pname = Process.GetProcessesByName(cfgGameName);
             bool isRunning = pname.Length > 0;
             return isRunning;
         }
@@ -254,7 +269,7 @@ namespace IGI_Injector
         //Execute shell command and get std-output.
         private static string ShellExec(string cmdArgs, string shell = "cmd.exe")
         {
-            Process process = new Process();
+            var process = new Process();
             var startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.CreateNoWindow = true;
@@ -265,7 +280,7 @@ namespace IGI_Injector
             startInfo.UseShellExecute = false;
             process.StartInfo = startInfo;
             process.Start();
-            string output = process.StandardOutput.ReadToEnd();
+            string output = process.StandardError.ReadToEnd();
             process.WaitForExit();
             return output;
         }
