@@ -5,11 +5,11 @@ using System.Windows.Forms;
 
 namespace IGI_Injector
 {
-    public partial class MainUI : Form
+    public partial class IGIInjectorUI : Form
     {
-        internal static MainUI mainRef;
+        internal static IGIInjectorUI mainRef;
 
-        public MainUI()
+        public IGIInjectorUI()
         {
             InitializeComponent();
             if (!File.Exists(Utils.injectorFile))
@@ -17,10 +17,15 @@ namespace IGI_Injector
 
             this.MinimizeBox = this.MaximizeBox = false;
             mainRef = this;
+            Utils.inputDllPaths = new List<string>();
             Utils.ParseConfig();
             Utils.CreateGameShortcut();
-            Utils.inputDllNames = new List<string>();
-            levelStartTxt.Value = Utils.gameLevel;
+
+            //Set app properties from Config file
+            levelStartTxt.Value = Utils.cfgGameLevel;
+            if (Utils.cfgGameMode == "windowed") windowCb.Checked = true;
+            else if (Utils.cfgGameMode == "full") fullCb.Checked = true;
+            autoInjectCb.Checked = (Utils.cfgAutoInject);
         }
 
         private void browseFile_Click(object sender, EventArgs e)
@@ -30,19 +35,18 @@ namespace IGI_Injector
             fileDlg.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath);
             fileDlg.Title = "Select DLL";
             fileDlg.DefaultExt = ".dll";
-            fileDlg.Multiselect = Utils.multiDll;
+            fileDlg.Multiselect = Utils.cfgMultiDll;
             fileDlg.CheckFileExists = fileDlg.RestoreDirectory = fileDlg.AddExtension = true;
 
             DialogResult resultDlg = fileDlg.ShowDialog();
             if (resultDlg == DialogResult.OK)
             {
-                //string dllFile;
-                Utils.inputDllNames.Clear();
+                Utils.inputDllPaths.Clear();
                 try
                 {
                     foreach (var dllFile in fileDlg.FileNames)
                     {
-                        Utils.inputDllNames.Add(dllFile);
+                        Utils.inputDllPaths.Add(dllFile);
                         browseFile.Text = Path.GetFileName(dllFile);
                     }
                     statusLbl.Text = "";
@@ -58,12 +62,12 @@ namespace IGI_Injector
         {
             if (autoInjectCb.Checked)
             {
-                Utils.gameLevel = Convert.ToInt32(levelStartTxt.Text.ToString());
+                Utils.cfgGameLevel = Int32.Parse(levelStartTxt.Text.ToString());
                 if (Utils.IsGameRunning()) System.Threading.Thread.Sleep(3000);
                 else
                 {
-                    Utils.GameRunner(windowCb.Checked, Utils.gameLevel);
-                    System.Threading.Thread.Sleep(Utils.delayDll * 1000);
+                    Utils.GameRunner(windowCb.Checked, Utils.cfgGameLevel);
+                    System.Threading.Thread.Sleep(Utils.cfgDelayDll * 1000);
                 }
             }
 
@@ -88,20 +92,30 @@ namespace IGI_Injector
 
         private void startGameBtn_Click(object sender, EventArgs e)
         {
-            Utils.gameLevel = Convert.ToInt32(levelStartTxt.Text.ToString());
-            Utils.GameRunner(windowCb.Checked, Utils.gameLevel);
+            Utils.cfgGameLevel = Convert.ToInt32(levelStartTxt.Text.ToString());
+            Utils.GameRunner(windowCb.Checked, Utils.cfgGameLevel);
         }
 
         private void windowCb_CheckedChanged(object sender, EventArgs e)
         {
-            if (windowCb.Checked) fullCb.Checked = false;
+            if (windowCb.Checked) { fullCb.Checked = false; Utils.cfgGameMode = "windowed"; }
             else if (!windowCb.Checked && !fullCb.Checked) windowCb.Checked = true;
         }
 
         private void fullCb_CheckedChanged(object sender, EventArgs e)
         {
-            if (fullCb.Checked) windowCb.Checked = false;
+            if (fullCb.Checked){ windowCb.Checked = false; Utils.cfgGameMode = "full";}
             else if (!fullCb.Checked && !windowCb.Checked) fullCb.Checked = true;
+        }
+
+        private void levelStartTxt_ValueChanged(object sender, EventArgs e)
+        {
+            Utils.cfgGameLevel = Int32.Parse(((NumericUpDown)(sender)).Value.ToString());
+        }
+
+        private void autoInjectCb_CheckedChanged(object sender, EventArgs e)
+        {
+            Utils.cfgAutoInject = (autoInjectCb.Checked);
         }
     }
 }

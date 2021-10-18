@@ -5,7 +5,7 @@ using System.Text;
 
 namespace IGI_Injector
 {
-    class IniFile
+    class IniParser
     {
         string Path;
         string EXE = Assembly.GetExecutingAssembly().GetName().Name;
@@ -16,7 +16,7 @@ namespace IGI_Injector
         [DllImport("kernel32", CharSet = CharSet.Unicode)]
         static extern int GetPrivateProfileString(string Section, string Key, string Default, StringBuilder RetVal, int Size, string FilePath);
 
-        public IniFile(string IniPath = null)
+        public IniParser(string IniPath = null)
         {
             Path = new FileInfo(IniPath ?? EXE + ".ini").FullName;
         }

@@ -1,7 +1,7 @@
 ﻿
 namespace IGI_Injector
 {
-    partial class MainUI
+    partial class IGIInjectorUI
     {
         /// <summary>
         /// Required designer variable.
@@ -29,8 +29,11 @@ namespace IGI_Injector
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainUI));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(IGIInjectorUI));
             this.mainPanel = new System.Windows.Forms.Panel();
+            this.fullCb = new System.Windows.Forms.CheckBox();
+            this.windowCb = new System.Windows.Forms.CheckBox();
+            this.autoInjectCb = new System.Windows.Forms.CheckBox();
             this.startGameBtn = new System.Windows.Forms.Button();
             this.levelStartTxt = new System.Windows.Forms.NumericUpDown();
             this.statusLbl = new System.Windows.Forms.Label();
@@ -39,9 +42,6 @@ namespace IGI_Injector
             this.ejectBtn = new System.Windows.Forms.Button();
             this.injectBtn = new System.Windows.Forms.Button();
             this.title_lbl = new System.Windows.Forms.Label();
-            this.autoInjectCb = new System.Windows.Forms.CheckBox();
-            this.windowCb = new System.Windows.Forms.CheckBox();
-            this.fullCb = new System.Windows.Forms.CheckBox();
             this.mainPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.levelStartTxt)).BeginInit();
             this.SuspendLayout();
@@ -68,6 +68,53 @@ namespace IGI_Injector
             this.mainPanel.Name = "mainPanel";
             this.mainPanel.Size = new System.Drawing.Size(662, 391);
             this.mainPanel.TabIndex = 5;
+            // 
+            // fullCb
+            // 
+            this.fullCb.AutoSize = true;
+            this.fullCb.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.fullCb.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.fullCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
+            this.fullCb.Location = new System.Drawing.Point(262, 290);
+            this.fullCb.Name = "fullCb";
+            this.fullCb.Size = new System.Drawing.Size(50, 23);
+            this.fullCb.TabIndex = 46;
+            this.fullCb.Text = "Full";
+            this.fullCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
+            this.fullCb.UseVisualStyleBackColor = true;
+            this.fullCb.CheckedChanged += new System.EventHandler(this.fullCb_CheckedChanged);
+            // 
+            // windowCb
+            // 
+            this.windowCb.AutoSize = true;
+            this.windowCb.Checked = true;
+            this.windowCb.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.windowCb.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.windowCb.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.windowCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
+            this.windowCb.Location = new System.Drawing.Point(156, 290);
+            this.windowCb.Name = "windowCb";
+            this.windowCb.Size = new System.Drawing.Size(86, 23);
+            this.windowCb.TabIndex = 46;
+            this.windowCb.Text = "Window";
+            this.windowCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
+            this.windowCb.UseVisualStyleBackColor = true;
+            this.windowCb.CheckedChanged += new System.EventHandler(this.windowCb_CheckedChanged);
+            // 
+            // autoInjectCb
+            // 
+            this.autoInjectCb.AutoSize = true;
+            this.autoInjectCb.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.autoInjectCb.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.autoInjectCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
+            this.autoInjectCb.Location = new System.Drawing.Point(158, 204);
+            this.autoInjectCb.Name = "autoInjectCb";
+            this.autoInjectCb.Size = new System.Drawing.Size(103, 23);
+            this.autoInjectCb.TabIndex = 45;
+            this.autoInjectCb.Text = "Auto-Inject";
+            this.autoInjectCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
+            this.autoInjectCb.UseVisualStyleBackColor = true;
+            this.autoInjectCb.CheckedChanged += new System.EventHandler(this.autoInjectCb_CheckedChanged);
             // 
             // startGameBtn
             // 
@@ -107,6 +154,7 @@ namespace IGI_Injector
             0,
             0,
             0});
+            this.levelStartTxt.ValueChanged += new System.EventHandler(this.levelStartTxt_ValueChanged);
             // 
             // statusLbl
             // 
@@ -197,53 +245,7 @@ namespace IGI_Injector
             this.title_lbl.TabIndex = 2;
             this.title_lbl.Text = "Project I.G.I Injector";
             // 
-            // autoInjectCb
-            // 
-            this.autoInjectCb.AutoSize = true;
-            this.autoInjectCb.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.autoInjectCb.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.autoInjectCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
-            this.autoInjectCb.Location = new System.Drawing.Point(158, 204);
-            this.autoInjectCb.Name = "autoInjectCb";
-            this.autoInjectCb.Size = new System.Drawing.Size(103, 23);
-            this.autoInjectCb.TabIndex = 45;
-            this.autoInjectCb.Text = "Auto-Inject";
-            this.autoInjectCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.autoInjectCb.UseVisualStyleBackColor = true;
-            // 
-            // windowCb
-            // 
-            this.windowCb.AutoSize = true;
-            this.windowCb.Checked = true;
-            this.windowCb.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.windowCb.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.windowCb.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.windowCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
-            this.windowCb.Location = new System.Drawing.Point(156, 290);
-            this.windowCb.Name = "windowCb";
-            this.windowCb.Size = new System.Drawing.Size(86, 23);
-            this.windowCb.TabIndex = 46;
-            this.windowCb.Text = "Window";
-            this.windowCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.windowCb.UseVisualStyleBackColor = true;
-            this.windowCb.CheckedChanged += new System.EventHandler(this.windowCb_CheckedChanged);
-            // 
-            // fullCb
-            // 
-            this.fullCb.AutoSize = true;
-            this.fullCb.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
-            this.fullCb.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fullCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
-            this.fullCb.Location = new System.Drawing.Point(262, 290);
-            this.fullCb.Name = "fullCb";
-            this.fullCb.Size = new System.Drawing.Size(50, 23);
-            this.fullCb.TabIndex = 46;
-            this.fullCb.Text = "Full";
-            this.fullCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.fullCb.UseVisualStyleBackColor = true;
-            this.fullCb.CheckedChanged += new System.EventHandler(this.fullCb_CheckedChanged);
-            // 
-            // MainUI
+            // IGIInjectorUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -251,7 +253,7 @@ namespace IGI_Injector
             this.Controls.Add(this.mainPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "MainUI";
+            this.Name = "IGIInjectorUI";
             this.Text = "Project I.G.I Injector - HM";
             this.mainPanel.ResumeLayout(false);
             this.mainPanel.PerformLayout();
@@ -264,16 +266,16 @@ namespace IGI_Injector
 
         private System.Windows.Forms.Panel mainPanel;
         private System.Windows.Forms.Button aboutBtn;
-        private System.Windows.Forms.Button browseFile;
         private System.Windows.Forms.Button injectBtn;
         private System.Windows.Forms.Label title_lbl;
         private System.Windows.Forms.Button ejectBtn;
         internal System.Windows.Forms.Label statusLbl;
         private System.Windows.Forms.Button startGameBtn;
-        private System.Windows.Forms.NumericUpDown levelStartTxt;
         private System.Windows.Forms.CheckBox autoInjectCb;
         private System.Windows.Forms.CheckBox fullCb;
         private System.Windows.Forms.CheckBox windowCb;
+        internal System.Windows.Forms.NumericUpDown levelStartTxt;
+        internal System.Windows.Forms.Button browseFile;
     }
 }
 
