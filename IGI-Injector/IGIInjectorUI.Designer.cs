@@ -96,12 +96,12 @@ namespace IGI_Injector
             this.setGamePathBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.setGamePathBtn.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.setGamePathBtn.ForeColor = System.Drawing.Color.DeepSkyBlue;
-            this.setGamePathBtn.Location = new System.Drawing.Point(63, 164);
+            this.setGamePathBtn.Location = new System.Drawing.Point(63, 92);
             this.setGamePathBtn.Margin = new System.Windows.Forms.Padding(4);
             this.setGamePathBtn.Name = "setGamePathBtn";
             this.setGamePathBtn.Size = new System.Drawing.Size(666, 41);
             this.setGamePathBtn.TabIndex = 58;
-            this.setGamePathBtn.Text = "Selelct Game Path";
+            this.setGamePathBtn.Text = "Set Game Path";
             this.setGamePathBtn.UseVisualStyleBackColor = false;
             this.setGamePathBtn.Click += new System.EventHandler(this.setGamePathBtn_Click);
             // 
@@ -111,11 +111,11 @@ namespace IGI_Injector
             this.multiDLLCb.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.multiDLLCb.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.multiDLLCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
-            this.multiDLLCb.Location = new System.Drawing.Point(176, 278);
+            this.multiDLLCb.Location = new System.Drawing.Point(152, 278);
             this.multiDLLCb.Name = "multiDLLCb";
-            this.multiDLLCb.Size = new System.Drawing.Size(88, 23);
+            this.multiDLLCb.Size = new System.Drawing.Size(61, 23);
             this.multiDLLCb.TabIndex = 57;
-            this.multiDLLCb.Text = "Multi-DLL";
+            this.multiDLLCb.Text = "Multi";
             this.multiDLLCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
             this.multiDLLCb.UseVisualStyleBackColor = true;
             this.multiDLLCb.CheckedChanged += new System.EventHandler(this.multiDLLCb_CheckedChanged);
@@ -158,14 +158,15 @@ namespace IGI_Injector
             this.gameTypeDD.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(35)))), ((int)(((byte)(54)))));
             this.gameTypeDD.Cursor = System.Windows.Forms.Cursors.Hand;
             this.gameTypeDD.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.gameTypeDD.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(34)))), ((int)(((byte)(35)))), ((int)(((byte)(54)))));
+            this.gameTypeDD.Font = new System.Drawing.Font("Century Gothic", 10F);
+            this.gameTypeDD.ForeColor = System.Drawing.Color.Transparent;
             this.gameTypeDD.FormattingEnabled = true;
             this.gameTypeDD.Items.AddRange(new object[] {
             "Project IGI 1",
             "Project IGI 2"});
             this.gameTypeDD.Location = new System.Drawing.Point(574, 351);
             this.gameTypeDD.Name = "gameTypeDD";
-            this.gameTypeDD.Size = new System.Drawing.Size(149, 24);
+            this.gameTypeDD.Size = new System.Drawing.Size(149, 29);
             this.gameTypeDD.TabIndex = 54;
             this.gameTypeDD.SelectedIndexChanged += new System.EventHandler(this.gameTypeDD_SelectedIndexChanged);
             this.gameTypeDD.MouseClick += new System.Windows.Forms.MouseEventHandler(this.gameTypeDD_MouseClick);
@@ -288,9 +289,9 @@ namespace IGI_Injector
             this.autoInjectCb.ForeColor = System.Drawing.Color.DeepSkyBlue;
             this.autoInjectCb.Location = new System.Drawing.Point(70, 278);
             this.autoInjectCb.Name = "autoInjectCb";
-            this.autoInjectCb.Size = new System.Drawing.Size(103, 23);
+            this.autoInjectCb.Size = new System.Drawing.Size(60, 23);
             this.autoInjectCb.TabIndex = 45;
-            this.autoInjectCb.Text = "Auto-Inject";
+            this.autoInjectCb.Text = "Auto";
             this.autoInjectCb.TextAlign = System.Drawing.ContentAlignment.TopLeft;
             this.autoInjectCb.UseVisualStyleBackColor = true;
             this.autoInjectCb.CheckedChanged += new System.EventHandler(this.autoInjectCb_CheckedChanged);
@@ -341,7 +342,7 @@ namespace IGI_Injector
             this.statusLbl.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.statusLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.statusLbl.ForeColor = System.Drawing.Color.SkyBlue;
-            this.statusLbl.Location = new System.Drawing.Point(246, 438);
+            this.statusLbl.Location = new System.Drawing.Point(213, 440);
             this.statusLbl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.statusLbl.Name = "statusLbl";
             this.statusLbl.Size = new System.Drawing.Size(0, 25);
@@ -355,7 +356,7 @@ namespace IGI_Injector
             this.browseFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.browseFile.Font = new System.Drawing.Font("Century Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.browseFile.ForeColor = System.Drawing.Color.DeepSkyBlue;
-            this.browseFile.Location = new System.Drawing.Point(63, 92);
+            this.browseFile.Location = new System.Drawing.Point(63, 164);
             this.browseFile.Margin = new System.Windows.Forms.Padding(4);
             this.browseFile.Name = "browseFile";
             this.browseFile.Size = new System.Drawing.Size(666, 41);

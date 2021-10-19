@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace IGI_Injector
@@ -29,6 +30,9 @@ namespace IGI_Injector
                 Utils.ParseConfig();
 
                 //Set app properties from Config file.
+                gameTypeDD.SelectedIndex = (Utils.cfgGameName.Contains("igi2") ? 1 : 0);
+                SetMinMaxLevel(gameTypeDD.SelectedIndex);
+
                 if (File.Exists(Utils.gameAbsPath + "\\" + Utils.cfgGameName + ".exe"))
                 {
                     setGamePathBtn.Enabled = false;
@@ -42,12 +46,14 @@ namespace IGI_Injector
                 autoInjectCb.Checked = Utils.cfgAutoInject;
                 multiDLLCb.Checked = Utils.cfgMultiDll;
                 delayTxt.Value = Utils.cfgDelayDll;
-                gameTypeDD.SelectedIndex = (Utils.cfgGameName.Contains("igi2") ? 1 : 0);
+
             }
-            catch (ArgumentOutOfRangeException)
+            catch (ArgumentOutOfRangeException ex)
             {
-                Utils.ShowWarning("Game Level should be between [" + levelStartTxt.Minimum + "-" + levelStartTxt.Maximum + "]");
-                levelStartTxt.Value = 1;
+                Utils.ShowWarning("Some values are out of range:\n\n'" + Utils.cfgGameName.ToUpper() + "' Level should be in range [" + levelStartTxt.Minimum + "-" + levelStartTxt.Maximum + "]" +
+                    "\nDelay should be in range [" + delayTxt.Minimum + "-" + delayTxt.Maximum + "]");
+                levelStartTxt.Value = Utils.cfgGameLevel > levelStartTxt.Maximum ? 1 : Utils.cfgGameLevel;
+                delayTxt.Value = Utils.cfgDelayDll > delayTxt.Maximum ? 10 : Utils.cfgDelayDll;
             }
 
             catch (Exception ex)
@@ -98,23 +104,32 @@ namespace IGI_Injector
             {
                 Utils.gameAbsPath = Path.GetDirectoryName(folderBrowser.FileName) + Path.DirectorySeparatorChar;
                 Utils.cfgGamePath = (!String.IsNullOrEmpty(Utils.gameAbsPath)) ? (Utils.gameAbsPath.Trim() + Utils.cfgGameName + ".exe") : null;
-                Utils.CreateGameShortcut();
-                Utils.ShowStatusInfo("Game path set success");
-                setGamePathBtn.Enabled = false;
-                setGamePathBtn.Text = "Game Path: " + Utils.gameAbsPath;
+                bool status = Utils.CreateGameShortcut();
+
+                if (!status)
+                {
+                    Utils.ShowStatusError("Game path set error");
+                    Utils.isGamePathSet = false;
+                }
+                else
+                {
+                    Utils.ShowStatusInfo("Game path set success");
+                    setGamePathBtn.Enabled = false;
+                    setGamePathBtn.Text = "Game Path: " + Utils.gameAbsPath;
+                    Utils.isGamePathSet = true;
+                }
             }
-            else Utils.ShowStatusError("Game path set error");
         }
 
         private void injectBtn_Click(object sender, EventArgs e)
         {
-            if (autoInjectCb.Checked)
+            if (autoInjectCb.Checked && Utils.isGamePathSet)
             {
                 Utils.cfgGameLevel = Int32.Parse(levelStartTxt.Text.ToString());
                 if (!Utils.IsGameRunning())
                 {
                     Utils.GameRunner(windowCb.Checked, Utils.cfgGameLevel);
-                    System.Threading.Thread.Sleep(Utils.cfgDelayDll * 1000);
+                    Thread.Sleep(Utils.cfgDelayDll * 1000);
                 }
             }
 
@@ -131,16 +146,17 @@ namespace IGI_Injector
 
         private void aboutBtn_Click(object sender, EventArgs e)
         {
-            string infoMsg = "IGI-Injector is tool to inject DLL into Project I.G.I Game\n" +
+            string infoMsg = "IGI-Injector is tool to inject DLL into IGI1 & IGI2 Game\n" +
                 "Developed by: Haseeb Mir\n" +
-                "Tools/Language: C# (.NET 5.0)/GUI.\n";
-            MessageBox.Show(infoMsg, "INFO", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                "Tools/Language: C# (.NET 4.0)/GUI.\n";
+            Utils.ShowInfo(infoMsg);
         }
 
         private void startGameBtn_Click(object sender, EventArgs e)
         {
             Utils.cfgGameLevel = Convert.ToInt32(levelStartTxt.Text.ToString());
             Utils.GameRunner(windowCb.Checked, Utils.cfgGameLevel);
+            statusLbl.Text = "";
         }
 
         private void windowCb_CheckedChanged(object sender, EventArgs e)
@@ -184,18 +200,7 @@ namespace IGI_Injector
                 Utils.cfgGameName = gameName.Replace("Project ", String.Empty).Replace(" ", String.Empty).ToLower();
                 if (Utils.cfgGameName.Contains("igi1")) Utils.cfgGameName = Utils.cfgGameName.Replace("igi1", "igi");
             }
-
-            if (gameIndex == 0)
-            {
-                levelStartTxt.Minimum = 1;
-                levelStartTxt.Maximum = Utils.IGI1_MAX_LEVEL;
-            }
-
-            else if (gameIndex == 1)
-            {
-                levelStartTxt.Minimum = 1;
-                levelStartTxt.Maximum = Utils.IGI2_MAX_LEVEL;
-            }
+            SetMinMaxLevel(gameIndex);
         }
 
         private void delayTxt_ValueChanged(object sender, EventArgs e)
@@ -212,5 +217,22 @@ namespace IGI_Injector
         {
             setGamePathBtn.Enabled = true;
         }
+
+
+        private void SetMinMaxLevel(int index)
+        {
+            if (index == 0)
+            {
+                levelStartTxt.Minimum = 1;
+                levelStartTxt.Maximum = Utils.IGI1_MAX_LEVEL;
+            }
+
+            else if (index == 1)
+            {
+                levelStartTxt.Minimum = 1;
+                levelStartTxt.Maximum = Utils.IGI2_MAX_LEVEL;
+            }
+        }
+
     }
 }

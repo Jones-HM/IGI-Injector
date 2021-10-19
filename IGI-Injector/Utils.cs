@@ -15,11 +15,11 @@ namespace IGI_Injector
         private static string projAppName, cfgDllPath, keyBase = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
         internal static List<string> inputDllPaths;
         internal const string CAPTION_CONFIG_ERR = "Config - Error", CAPTION_FATAL_SYS_ERR = "Fatal sytem - Error", CAPTION_APP_ERR = "Application - Error", CAPTION_COMPILER_ERR = "Compiler - Error", PATH_SEC = "PATH", GAME_SEC = "GAME", DLL_SEC = "DLL";
-        internal static bool cfgMultiDll = false, cfgAutoInject = false;
-        internal static int cfgDelayDll = 10, cfgGameLevel = 1,IGI1_MAX_LEVEL = 14, IGI2_MAX_LEVEL = 19;
-        internal static string gameAbsPath,cfgGamePath, cfgGameName = "igi", cfgFile, cfgGameMode = "windowed", injectorFile = @"bin\igi-injector-cmd.exe";
+        internal static bool isGamePathSet = false, cfgMultiDll = false, cfgAutoInject = false;
+        internal static int cfgDelayDll = 10, cfgGameLevel = 1, IGI1_MAX_LEVEL = 14, IGI2_MAX_LEVEL = 19;
+        internal static string gameAbsPath, cfgGamePath, cfgGameName = "igi", cfgFile, cfgGameMode = "windowed", injectorFile = @"bin\igi-injector-cmd.exe";
         private static IniParser iniParser;
-        private static int[] missionListItems = { 0,11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36 };
+        private static int[] missionListItems = { 0, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36 };
 
         internal static bool DllRunner(bool dllInject)
         {
@@ -65,16 +65,14 @@ namespace IGI_Injector
 
             if (String.IsNullOrEmpty(cfgGamePath))
             {
-                ShowWarning("Game path could not be detected automatically! Please select game path in config file", CAPTION_CONFIG_ERR);
+                ShowWarning("Game path could not be detected automatically! Please select game path", CAPTION_CONFIG_ERR);
             }
             else
             {
                 cfgGamePath = cfgGamePath.Substring(0, cfgGamePath.LastIndexOf("\\"));
 
                 if (!File.Exists(cfgGamePath + "\\" + cfgGameName + ".exe"))
-                {
-                    ShowError("Invalid path selected! Game 'IGI' not found at path '" + cfgGamePath + "'", CAPTION_FATAL_SYS_ERR);
-                }
+                    ShowError("Invalid game path selected.\nGame '" + cfgGameName.ToUpper() + "' not found at path '" + cfgGamePath + "'", CAPTION_FATAL_SYS_ERR);
             }
 
             //Write Path to config.
@@ -139,29 +137,37 @@ namespace IGI_Injector
                     cfgGameLevel = Int32.Parse(iniParser.Read("level", GAME_SEC));
                     cfgGameMode = iniParser.Read("mode", GAME_SEC);
 
+                    //Handle invalid data.
+                    if (!cfgGameMode.Contains("windowed") && !cfgGameMode.Contains("full")) throw new Exception("Game mode is invalid");
+                    if (!cfgGameName.Contains("igi") && !cfgGameName.Contains("igi2")) throw new Exception("Game selected is not IGI game");
+
                     cfgGamePath = (!String.IsNullOrEmpty(gameAbsPath)) ? (gameAbsPath.Trim() + cfgGameName + ".exe") : null;
                 }
                 else
                 {
-                    ShowWarning("Config file not found in current directory", CAPTION_CONFIG_ERR);
                     CreateConfig(cfgFile);
                 }
             }
             catch (FormatException ex)
             {
-                if (ex.StackTrace.Contains("bool"))
-                    ShowConfigError("multi_dll");
+                if (ex.StackTrace.Contains("Boolean"))
+                    ShowConfigError("multi_dll or auto_inject");
                 else if (ex.StackTrace.Contains("Int32"))
                     ShowConfigError("delay_dll or game_level");
+            }
+            catch (Exception ex)
+            {
+                ShowSystemFatalError("Exception: " + ex.Message);
             }
         }
 
 
-        private static void CreateGameShortcut(string linkName, string pathToApp, string gameArgs = "")
+        private static bool CreateGameShortcut(string linkName, string pathToApp, string gameArgs = "")
         {
             if (!File.Exists(cfgGamePath))
             {
-                ShowSystemFatalError("Invalid game path selected!\nGame 'IGI' not found at path '" + cfgGamePath + "'");
+                ShowError("Invalid game path selected.\nGame '" + cfgGameName.ToUpper() + "' not found at path '" + cfgGamePath + "'", CAPTION_FATAL_SYS_ERR);
+                return false;
             }
 
             var shell = new WshShell();
@@ -176,33 +182,54 @@ namespace IGI_Injector
             shortcut.WorkingDirectory = pathToApp;
             shortcut.TargetPath = cfgGamePath;
             shortcut.Save();
+            return true;
         }
 
-        internal static void CreateGameShortcut()
+        internal static bool CreateGameShortcut()
         {
-            if (String.IsNullOrEmpty(gameAbsPath)) return;
+            bool status = false;
+            if (String.IsNullOrEmpty(gameAbsPath)) return false;
 
             if (!File.Exists(cfgGameName + "_full.lnk") || !File.Exists(cfgGameName + "_full.lnk"))
             {
                 if (gameAbsPath.Contains("\""))
                     gameAbsPath = gameAbsPath.Replace("\"", String.Empty);
-                CreateGameShortcut(cfgGameName + "_full", gameAbsPath);
-                CreateGameShortcut(cfgGameName + "_window", gameAbsPath, "window");
+                status = CreateGameShortcut(cfgGameName + "_full", gameAbsPath);
+                if (status) CreateGameShortcut(cfgGameName + "_window", gameAbsPath, "window");
             }
+            return status;
         }
 
         internal static void GameRunner(bool windowed = true, int gameLevel = 1)
         {
-            string gameRunCmd;
-            bool gameRunning = IsGameRunning();
+            string gameRunCmd = "";
 
-            if (cfgGameName == "igi2") gameLevel = missionListItems[gameLevel]; //Get levels from missions Area.
+            if (cfgGameName == "igi2") gameLevel = missionListItems[gameLevel]; //Get levels from missions Area - IGI 2.
 
-            if (windowed) gameRunCmd = "start " + cfgGameName + "_window.lnk" + " level" + gameLevel;
-            else gameRunCmd = "start " + cfgGameName + "_full.lnk" + " level" + gameLevel;
-
-            if (!gameRunning)
-                ShellExec(gameRunCmd);
+            if (windowed)
+            {
+                string shortcutLink = cfgGameName + "_window.lnk";
+                if (!File.Exists(shortcutLink))
+                    ShowStatusError("Game path not found for '" + cfgGameName.ToUpper() + "'");
+                else
+                {
+                    gameRunCmd = "start " + shortcutLink + " level" + gameLevel;
+                    GameProcessExit();
+                    ShellExec(gameRunCmd);
+                }
+            }
+            else
+            {
+                string shortcutLink = cfgGameName + "_full.lnk";
+                if (!File.Exists(shortcutLink))
+                    ShowStatusError("Game path was not found for '" + cfgGameName.ToUpper() + "'");
+                else
+                {
+                    gameRunCmd = "start " + shortcutLink + " level" + gameLevel;
+                    GameProcessExit();
+                    ShellExec(gameRunCmd);
+                }
+            }
         }
 
 
@@ -223,6 +250,17 @@ namespace IGI_Injector
             Process[] pname = Process.GetProcessesByName(cfgGameName);
             bool isRunning = pname.Length > 0;
             return isRunning;
+        }
+
+        internal static void GameProcessExit()
+        {
+            bool gameRunning = IsGameRunning();
+            if (gameRunning && !String.IsNullOrEmpty(cfgGameName))
+            {
+                var process = Process.GetProcessesByName(cfgGameName);
+                if (process.Length > 0)
+                    process[0].Kill();
+            }
         }
 
         internal static void ShowWarning(string warnMsg, string caption = "WARNING")
