@@ -148,7 +148,9 @@ namespace IGI_Injector
         {
             string infoMsg = "IGI-Injector is tool to inject DLL into IGI1 & IGI2 Game\n" +
                 "Developed by: Haseeb Mir\n" +
-                "Tools/Language: C# (.NET 4.0)/GUI.\n";
+                "App/Language: C# (.NET 4.0) / GUI.\n" +
+                "Tools/Language: C++17 / CMD.\n" +
+                "Application Version:  v1.0\n";
             Utils.ShowInfo(infoMsg);
         }
 
@@ -156,7 +158,6 @@ namespace IGI_Injector
         {
             Utils.cfgGameLevel = Convert.ToInt32(levelStartTxt.Text.ToString());
             Utils.GameRunner(windowCb.Checked, Utils.cfgGameLevel);
-            statusLbl.Text = "";
         }
 
         private void windowCb_CheckedChanged(object sender, EventArgs e)

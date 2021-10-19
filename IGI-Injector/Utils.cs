@@ -141,7 +141,12 @@ namespace IGI_Injector
                     if (!cfgGameMode.Contains("windowed") && !cfgGameMode.Contains("full")) throw new Exception("Game mode is invalid");
                     if (!cfgGameName.Contains("igi") && !cfgGameName.Contains("igi2")) throw new Exception("Game selected is not IGI game");
 
-                    cfgGamePath = (!String.IsNullOrEmpty(gameAbsPath)) ? (gameAbsPath.Trim() + cfgGameName + ".exe") : null;
+                    if (!String.IsNullOrEmpty(gameAbsPath) && gameAbsPath.Length > 3)
+                    {
+                        cfgGamePath = (gameAbsPath.Trim() + cfgGameName + ".exe");
+                        isGamePathSet = true;
+                    }
+                    else cfgGamePath = null;
                 }
                 else
                 {
