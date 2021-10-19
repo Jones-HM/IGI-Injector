@@ -87,4 +87,7 @@ Injector uses _INI_ configuration as **_IGI-Injector.ini_** to save data of appl
 
 ![game_config](https://github.com/haseeb-heaven/IGI-Injector/blob/master/IGI-Injector/resources/game_config.png?raw=true "")
 
+# IGI-Injector Tutorial on YouTube :
+[![GTLibPy Demo](https://img.youtube.com/vi/JWqiNjbk7D4/0.jpg)](https://www.youtube.com/watch?v=JWqiNjbk7D4)
+
 written and maintained by _Haseeb_ _Mir_ (haseebmir.hm@gmail.com)</br>
