@@ -1,6 +1,7 @@
-![cover_logo](https://github.com/haseeb-heaven/IGI-Injector/blob/master/IGI-Injector/resources/injector_main.png?raw=true "")
-
+# Project I.G.I DLL Injector
 _IGI-**Injector**_ is [DLL Injector](https://en.wikipedia.org/wiki/DLL_injection) to inject **DLL** into game process, It supports both _IGI 1_ and _IGI 2_ game and is built for **x86(32bit)** process because of game compatibility.
+
+![cover_logo](https://github.com/haseeb-heaven/IGI-Injector/blob/master/IGI-Injector/resources/injector_main.png?raw=true "")
 
 **NOTE** : This is not general injector it only works for _IGI_ games.
  
@@ -88,6 +89,11 @@ Injector uses _INI_ configuration as **_IGI-Injector.ini_** to save data of appl
 ![game_config](https://github.com/haseeb-heaven/IGI-Injector/blob/master/IGI-Injector/resources/game_config.png?raw=true "")
 
 # IGI-Injector Tutorial on YouTube :
-[![GTLibPy Demo](https://img.youtube.com/vi/JWqiNjbk7D4/0.jpg)](https://www.youtube.com/watch?v=JWqiNjbk7D4)
+[![IGI-Injector Demo](https://img.youtube.com/vi/JWqiNjbk7D4/0.jpg)](https://www.youtube.com/watch?v=JWqiNjbk7D4)
 
-written and maintained by _Haseeb_ _Mir_ (haseebmir.hm@gmail.com)</br>
+If you encounter any issues with Editor just contact me at</br>
+
+Discord Id: _Jones_IGI#3954_ and Join [Discord server](https://discord.gg/AyVDW7kE6V)</br>
+**Email:** igiproz.hm@gmail.com</br>
+Follow Project: [GitHub](https://github.com/IGI-Research-Devs/)</br>
+Subscribe Channel: [YouTube](https://www.youtube.com/channel/UChGryl0a0dii81NfDZ12LwA/)</br>
